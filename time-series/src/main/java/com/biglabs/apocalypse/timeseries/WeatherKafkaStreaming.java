@@ -48,7 +48,6 @@ public class WeatherKafkaStreaming {
         String CassandraKeyspace = killrweather.getString("cassandra.keyspace");
         String CassandraTableRaw = killrweather.getString("cassandra.table.raw");
         String KafkaGroupId = kafka.getString("group.id");
-
         String KafkaTopicRaw = kafka.getString("topic.raw");
 
         SparkConf conf = new SparkConf()
@@ -88,7 +87,7 @@ public class WeatherKafkaStreaming {
 
 
         Map<String, Integer> topicMap = new HashMap<>();
-        topicMap.put("topic", 1);
+        topicMap.put(KafkaTopicRaw, 1);
 
         JavaPairReceiverInputDStream<String, String> rootStream = KafkaUtils.createStream(ssc,
                 zkQuorum, KafkaGroupId, topicMap);

@@ -1,7 +1,11 @@
 package com.biglabs.apocalypse.timeseries;
 
+import com.datastax.spark.connector.embedded.EmbeddedKafka;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.common.collect.Lists;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import kafka.serializer.StringDecoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.AbstractJavaRDDLike;
@@ -15,12 +19,15 @@ import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.StreamingContext;
 import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import scala.Tuple2;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
@@ -30,7 +37,7 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
  */
 public class WeatherKafkaStreaming {
     String sparkMaster = "local[*]";
-    String cassandraHosts = "";
+    String cassandraHosts = "localhost";
     int sparkCleanerTtl = 3600*2;
     long SparkStreamingBatchInterval = 1000;
     String keyspace = "isd_weather_data";
@@ -38,20 +45,58 @@ public class WeatherKafkaStreaming {
 
 
     public void run() {
+        Config rootConf = ConfigFactory.load();
+        Config kafka = rootConf.getConfig("kafka");
+        Config killrweather = rootConf.getConfig("killrweather");
+        String CassandraKeyspace = killrweather.getString("cassandra.keyspace");
+        String CassandraTableRaw = killrweather.getString("cassandra.table.raw");
+        String KafkaGroupId = kafka.getString("group.id");
+
+        String KafkaTopicRaw = kafka.getString("topic.raw");
+
         SparkConf conf = new SparkConf()
                 .setAppName(WeatherKafkaStreaming.class.getSimpleName())
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
-                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-                .set("spark.kryo.registrator", "com.datastax.killrweather.KillrKryoRegistrator")
+//                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+//                .set("spark.kryo.registrator", "com.datastax.killrweather.KillrKryoRegistrator")
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl));
 
-        JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
+       // JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
+        JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(2000));
+
+
+        /** Starts the Kafka broker and Zookeeper. */
+        EmbeddedKafka embeddedKafka = new EmbeddedKafka();
+
+
+        /** Creates the raw data topic. */
+        embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
+
+//        HashSet<String> topicsSet = new HashSet<>(Arrays.asList("topic"));
+//        HashMap<String, String> kafkaParams = new HashMap<String, String>();
+//        String brokers = "localhost";
+//        kafkaParams.put("metadata.broker.list", brokers);
+//
+//        // Create direct kafka stream with brokers and topics
+//        JavaPairInputDStream<String, String> rootStream = KafkaUtils.createDirectStream(
+//                ssc,
+//                String.class,
+//                String.class,
+//                StringDecoder.class,
+//                StringDecoder.class,
+//                kafkaParams,
+//                topicsSet
+//        );
+
 
         Map<String, Integer> topicMap = new HashMap<>();
         topicMap.put("topic", 1);
-        JavaDStream<RawWeatherData> kafkaStream = KafkaUtils.createStream(
-                ssc, "zkQuorum", "groupId", topicMap)
+        JavaPairReceiverInputDStream<String, String> rootStream = KafkaUtils.createStream(ssc,
+                embeddedKafka.kafkaConfig().zkConnect(), KafkaGroupId, topicMap);
+
+
+        JavaDStream<RawWeatherData> kafkaStream = rootStream
                 .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(","))
                 .map((Function<String[], RawWeatherData>) array -> new RawWeatherData(array));
 

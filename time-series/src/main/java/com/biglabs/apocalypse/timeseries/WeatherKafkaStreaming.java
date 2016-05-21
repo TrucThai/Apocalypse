@@ -40,9 +40,6 @@ public class WeatherKafkaStreaming {
     String cassandraHosts = "localhost";
     int sparkCleanerTtl = 3600*2;
     long SparkStreamingBatchInterval = 1000;
-    String keyspace = "isd_weather_data";
-    String tableRaw = "raw_weather_data";
-
 
     public void run() {
         Config rootConf = ConfigFactory.load();
@@ -69,9 +66,9 @@ public class WeatherKafkaStreaming {
         /** Starts the Kafka broker and Zookeeper. */
         EmbeddedKafka embeddedKafka = new EmbeddedKafka();
 
-
         /** Creates the raw data topic. */
         embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
+        String zkQuorum = embeddedKafka.kafkaConfig().zkConnect();
 
 //        HashSet<String> topicsSet = new HashSet<>(Arrays.asList("topic"));
 //        HashMap<String, String> kafkaParams = new HashMap<String, String>();
@@ -92,8 +89,9 @@ public class WeatherKafkaStreaming {
 
         Map<String, Integer> topicMap = new HashMap<>();
         topicMap.put("topic", 1);
+
         JavaPairReceiverInputDStream<String, String> rootStream = KafkaUtils.createStream(ssc,
-                embeddedKafka.kafkaConfig().zkConnect(), KafkaGroupId, topicMap);
+                zkQuorum, KafkaGroupId, topicMap);
 
 
         JavaDStream<RawWeatherData> kafkaStream = rootStream
@@ -102,7 +100,7 @@ public class WeatherKafkaStreaming {
 
         /** Saves the raw data to Cassandra - raw table. */
         kafkaStream.foreachRDD((JavaRDD<RawWeatherData> x) -> {
-            javaFunctions(x).writerBuilder(keyspace, tableRaw, mapToRow(RawWeatherData.class))
+            javaFunctions(x).writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawWeatherData.class))
                     .saveToCassandra();
         });
 

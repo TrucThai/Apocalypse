@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import static org.elasticsearch.spark.rdd.api.java.JavaEsSpark.*;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
 
@@ -57,6 +58,10 @@ public class WeatherKafkaStreaming {
 //                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 //                .set("spark.kryo.registrator", "com.datastax.killrweather.KillrKryoRegistrator")
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl));
+
+        // es
+
+        conf.set("es.index.auto.create", "true");
 
        // JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
         JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(2000));
@@ -101,6 +106,8 @@ public class WeatherKafkaStreaming {
         kafkaStream.foreachRDD((JavaRDD<RawWeatherData> x) -> {
             javaFunctions(x).writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawWeatherData.class))
                     .saveToCassandra();
+
+            saveToEs(x, "spark/docs");
         });
 
         ssc.start();              // Start the computation

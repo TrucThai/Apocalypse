@@ -52,7 +52,7 @@ public class WeatherKafkaStreaming {
     int sparkCleanerTtl = 3600*2;
     long SparkStreamingBatchInterval = 1000;
 
-    public void run() {
+    public void run(String[] args) {
         Config rootConf = ConfigFactory.load();
         Config kafka = rootConf.getConfig("kafka");
         Config killrweather = rootConf.getConfig("killrweather");
@@ -61,6 +61,11 @@ public class WeatherKafkaStreaming {
         String KafkaGroupId = kafka.getString("group.id");
         String KafkaTopicRaw = kafka.getString("topic.raw");
         String CassandraTableDailyPrecip = killrweather.getString("cassandra.table.daily.precipitation");
+
+        Config spark = rootConf.getConfig("spark");
+        String sparkMaster = spark.getString("master");// "local[*]";
+        Config cassandra = rootConf.getConfig("cassandra");
+        String cassandraHosts = cassandra.getString("connection.host");//"localhost";
 
         SparkConf conf = new SparkConf()
                 .setAppName(WeatherKafkaStreaming.class.getSimpleName())
@@ -78,11 +83,17 @@ public class WeatherKafkaStreaming {
         JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(2000));
 
 
-        /** Starts the Kafka broker and Zookeeper. */
-        EmbeddedKafka embeddedKafka = new EmbeddedKafka();
+        String brokers;
+        if (args.length > 0) {
+            brokers = args[0];
+        } else {
+            /** Starts the Kafka broker and Zookeeper. */
+            EmbeddedKafka embeddedKafka = new EmbeddedKafka();
 
-        /** Creates the raw data topic. */
-        embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
+            /** Creates the raw data topic. */
+            embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
+            brokers = embeddedKafka.kafkaConfig().hostName() + ":" + embeddedKafka.kafkaConfig().port();
+        }
 
 
         //Set<String> topicsSet = new HashSet<>(Arrays.asList(KafkaTopicRaw));
@@ -95,7 +106,7 @@ public class WeatherKafkaStreaming {
         //Map<String, String> kafkaParams = new HashMap<String, String>(embeddedKafka.kafkaParams());
         java.util.Map<String, String> kafkaParams = new HashMap<String, String>();
         // kafkaParams.put("metadata.broker.list", "localhost:" + embeddedKafka.kafkaConfig().port());
-        kafkaParams.put("metadata.broker.list", embeddedKafka.kafkaConfig().hostName() + ":" + embeddedKafka.kafkaConfig().port());
+        kafkaParams.put("metadata.broker.list", brokers);
         Set<String> topicsSet = new HashSet<>(Arrays.asList(KafkaTopicRaw));
         JavaPairInputDStream<String, String> rootStream = KafkaUtils.createDirectStream(
                 ssc,
@@ -175,6 +186,6 @@ public class WeatherKafkaStreaming {
     }
 
     public static void main(String[] args)  {
-        new WeatherKafkaStreaming().run();
+        new WeatherKafkaStreaming().run(args);
     }
 }

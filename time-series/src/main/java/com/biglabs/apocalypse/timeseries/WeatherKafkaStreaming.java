@@ -47,10 +47,7 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.*;
  * Created by tail on 5/19/2016.
  */
 public class WeatherKafkaStreaming {
-    String sparkMaster = "local[*]";
-    String cassandraHosts = "localhost";
     int sparkCleanerTtl = 3600*2;
-    long SparkStreamingBatchInterval = 1000;
 
     public void run(String[] args) {
         Config rootConf = ConfigFactory.load();

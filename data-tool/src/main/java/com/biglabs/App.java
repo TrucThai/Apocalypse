@@ -46,11 +46,15 @@ public class App {
 
         for(File file: files){
             try{
+                String parent = file.getParentFile().getName();
+                String name = file.getName();
+                String header = parent + " " + name + " ";
                 Reader reader = new FileReader(file.getAbsolutePath());
                 BufferedReader bufferedReader = new BufferedReader(reader);
                 String line = bufferedReader.readLine();
+
                 while(line != null){
-                    producer.send(new ProducerRecord<String, String>(topics, file.getName(), line));
+                    producer.send(new ProducerRecord<String, String>(topics, line, header + line));
                     line = bufferedReader.readLine();
                 }
             } catch (Exception ex){

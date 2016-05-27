@@ -16,6 +16,7 @@
 
     <modules>
         <module>time-series</module>
+        <module>data-tool</module>
     </modules>
 
     <properties>

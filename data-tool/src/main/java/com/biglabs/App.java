@@ -57,10 +57,15 @@ public class App {
                     producer.send(new ProducerRecord<String, String>(topics, line, header + line));
                     line = bufferedReader.readLine();
                 }
+
+                bufferedReader.close();
             } catch (Exception ex){
                 System.err.println(ex.toString());
             }
         }
+
+        producer.flush();
+        producer.close();
     }
 
     public static void listFiles(String dir, ArrayList<File> files){

@@ -1,11 +1,12 @@
 package com.biglabs.apocalypse.timeseries;
 
+import java.io.Serializable;
 import java.text.MessageFormat;
 
 /**
  * Created by tail on 5/25/2016.
  */
-public class DailyPrecipitation {
+public class DailyPrecipitation  implements Serializable {
     public String getKey() {
         return key;
     }

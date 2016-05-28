@@ -52,12 +52,12 @@ public class WeatherKafkaStreaming {
     public void run(String[] args) {
         Config rootConf = ConfigFactory.load();
         Config kafka = rootConf.getConfig("kafka");
-        Config killrweather = rootConf.getConfig("killrweather");
-        String CassandraKeyspace = killrweather.getString("cassandra.keyspace");
-        String CassandraTableRaw = killrweather.getString("cassandra.table.raw");
+        Config apocalypse = rootConf.getConfig("apocalypse");
+        String CassandraKeyspace = apocalypse.getString("cassandra.keyspace");
+        String CassandraTableRaw = apocalypse.getString("cassandra.table.raw");
         String KafkaGroupId = kafka.getString("group.id");
         String KafkaTopicRaw = kafka.getString("topic.raw");
-        String CassandraTableDailyPrecip = killrweather.getString("cassandra.table.daily.precipitation");
+        String CassandraTableDailyPrecip = apocalypse.getString("cassandra.table.daily.precipitation");
 
         Config spark = rootConf.getConfig("spark");
         String sparkMaster = spark.getString("master");// "local[*]";
@@ -69,7 +69,7 @@ public class WeatherKafkaStreaming {
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
 //                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-//                .set("spark.kryo.registrator", "com.datastax.killrweather.KillrKryoRegistrator")
+//                .set("spark.kryo.registrator", "com.datastax.apocalypse.KillrKryoRegistrator")
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl));
 
         // es
@@ -144,7 +144,7 @@ public class WeatherKafkaStreaming {
          *
          * Persists daily aggregate data to Cassandra daily precip table by weather station,
          * automatically sorted by most recent (due to how we set up the Cassandra schema:
-         * @see https://github.com/killrweather/killrweather/blob/master/data/create-timeseries.cql.
+         * @see https://github.com/apocalypse/apocalypse/blob/master/data/create-timeseries.cql.
          *
          * Because the 'oneHourPrecip' column is a Cassandra Counter we do not have to do a spark
          * reduceByKey, which is expensive. We simply let Cassandra do it - not expensive and fast.

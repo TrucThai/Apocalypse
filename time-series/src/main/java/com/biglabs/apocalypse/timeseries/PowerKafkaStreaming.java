@@ -59,16 +59,16 @@ public class PowerKafkaStreaming {
         JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(2000));
 
         String brokers;
-        try  {
-            brokers = kafka.getString("host");
-        } catch (Exception ex) {
-            /** Starts the Kafka broker and Zookeeper. */
-            EmbeddedKafka embeddedKafka = new EmbeddedKafka();
+        // try  {
+        brokers = kafka.getString("hosts");
+        // } catch (Exception ex) {
+        // /** Starts the Kafka broker and Zookeeper. */
+        // EmbeddedKafka embeddedKafka = new EmbeddedKafka();
 
-            /** Creates the raw data topic. */
-            embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
-            brokers = embeddedKafka.kafkaConfig().hostName() + ":" + embeddedKafka.kafkaConfig().port();
-        }
+        // /** Creates the raw data topic. */
+        // embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
+        // brokers = embeddedKafka.kafkaConfig().hostName() + ":" + embeddedKafka.kafkaConfig().port();
+        // }
 
         java.util.Map<String, String> kafkaParams = new HashMap<String, String>();
         // kafkaParams.put("metadata.broker.list", "localhost:" + embeddedKafka.kafkaConfig().port());
@@ -96,7 +96,7 @@ public class PowerKafkaStreaming {
             javaFunctions(x).writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawPowerData.class))
                     .saveToCassandra();
 
-           // saveToEs(x, "spark/power");
+            // saveToEs(x, "spark/power");
         });
 
         ssc.start();              // Start the computation

@@ -1,0 +1,2 @@
+mvn install
+/opt/iot/spark-1.6.1-bin-hadoop2.6/bin/spark-submit  --class com.biglabs.apocalypse.timeseries.PowerKafkaStreaming --master spark://192.168.1.131:7077 ./time-series/target/timeseries-1.0.0-SNAPSHOT-jar-with-dependencies.jar

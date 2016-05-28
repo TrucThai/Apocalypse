@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -23,6 +24,10 @@ public class App {
         String brokers = args[0];
         String topics = args[1];
         String dataRoot = args[2];
+
+        System.out.println("broker " + brokers);
+        System.out.println("topic " + topics);
+        System.out.println("dataroot " + dataRoot);
 
         Properties props = new Properties();
         props.put("bootstrap.servers", brokers);
@@ -44,27 +49,37 @@ public class App {
             System.exit(2);
         }
 
+        long startTime = System.currentTimeMillis();
+        long numberMsg = 0;
         for(File file: files){
             try{
-                String parent = file.getParentFile().getName();
-                String name = file.getName();
-                String header = parent + " " + name + " ";
-                Reader reader = new FileReader(file.getAbsolutePath());
-                BufferedReader bufferedReader = new BufferedReader(reader);
-                String line = bufferedReader.readLine();
+                if(file.getName().startsWith("channel")) {
+                    System.out.println("processing: " + file.getAbsolutePath());
+                    String parent = file.getParentFile().getName();
+                    String name = file.getName();
+                    String header = parent + " " + name + " ";
+                    Reader reader = new FileReader(file.getAbsolutePath());
+                    BufferedReader bufferedReader = new BufferedReader(reader);
+                    String line = bufferedReader.readLine();
 
-                while(line != null){
-                    producer.send(new ProducerRecord<String, String>(topics, line, header + line));
-                    line = bufferedReader.readLine();
+                    while (line != null) {
+                        numberMsg++;
+                        producer.send(new ProducerRecord<String, String>(topics, line, header + line));
+                        line = bufferedReader.readLine();
+                    }
+
+                    bufferedReader.close();
                 }
-
-                bufferedReader.close();
             } catch (Exception ex){
                 System.err.println(ex.toString());
             }
         }
 
         producer.flush();
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("total: " + numberMsg);
+        System.out.println("Total time: " + (endTime - startTime));
         producer.close();
     }
 

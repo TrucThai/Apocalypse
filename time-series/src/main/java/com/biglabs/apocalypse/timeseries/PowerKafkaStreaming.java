@@ -63,7 +63,7 @@ public class PowerKafkaStreaming {
         String cassandraHosts = cassandra.getString("connection.host");//"localhost";
 
         SparkConf conf = new SparkConf()
-                .setAppName(WeatherKafkaStreaming.class.getSimpleName())
+                .setAppName(PowerKafkaStreaming.class.getSimpleName())
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl));

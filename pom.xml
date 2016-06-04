@@ -17,6 +17,8 @@
     <modules>
         <module>time-series</module>
         <module>data-tool</module>
+        <module>sparkstream-tool</module>
+        <module>tcp-data-tool</module>
     </modules>
 
     <properties>

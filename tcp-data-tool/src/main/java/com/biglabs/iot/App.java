@@ -1,19 +1,17 @@
-package com.biglabs;
-
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+package com.biglabs.iot;
 
 import java.io.*;
+import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Properties;
 
 /**
  * Hello world!
+ *
  */
-public class App {
-    public static void main(String[] args) {
+public class App 
+{
+    public static void main(String[] args) throws IOException {
         if (args.length < 3) {
             System.err.println("Usage: data-tool <brokers> <topics>\n" +
                     "  <brokers> is a list of one or more Kafka brokers\n" +
@@ -21,26 +19,17 @@ public class App {
             System.exit(1);
         }
 
-        String brokers = args[0];
-        String topics = args[1];
+        String address = args[0];
+        String port = args[1];
         String dataRoot = args[2];
 
 
-        System.out.println("broker " + brokers);
-        System.out.println("topic " + topics);
+        System.out.println("address " + address);
+        System.out.println("port " + port);
         System.out.println("dataroot " + dataRoot);
 
-        Properties props = new Properties();
-        props.put("bootstrap.servers", brokers);
-//        props.put("acks", "all");
-        props.put("retries", 0);
-        props.put("batch.size", 16384);
-        props.put("linger.ms", 1);
-        props.put("buffer.memory", 33554432);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-        Producer<String, String> producer = new KafkaProducer<String, String>(props);
+        Socket clientSocket = new Socket(address, Integer.parseInt(port));
+        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
         ArrayList<File> files = new ArrayList<File>();
         listFiles(dataRoot, files);
@@ -53,6 +42,7 @@ public class App {
         long startTime = System.currentTimeMillis();
         long numberMsg = 0;
         for(File file: files){
+
             try{
                 if(file.getName().startsWith("channel")) {
                     System.out.println("processing: " + file.getAbsolutePath());
@@ -65,7 +55,7 @@ public class App {
 
                     while (line != null) {
                         numberMsg++;
-                        producer.send(new ProducerRecord<String, String>(topics, line, header + line));
+                        outToServer.writeBytes(line + '\n');
                         line = bufferedReader.readLine();
                     }
 
@@ -74,14 +64,14 @@ public class App {
             } catch (Exception ex){
                 System.err.println(ex.toString());
             }
+
         }
 
-        producer.flush();
+        clientSocket.close();
 
         long endTime = System.currentTimeMillis();
         System.out.println("total: " + numberMsg);
         System.out.println("Total time: " + (endTime - startTime));
-        producer.close();
     }
 
     public static void listFiles(String dir, ArrayList<File> files){

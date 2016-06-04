@@ -205,6 +205,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
                 <configuration>
                     <shadedArtifactAttached>false</shadedArtifactAttached>
                     <outputFile>${project.build.directory}/scala-${scala.binary.version}/apocalypse-timeseries-${project.version}-hadoop${hadoop.version}.jar</outputFile>

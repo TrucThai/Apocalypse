@@ -6,6 +6,7 @@ import com.datastax.spark.connector.writer.RowWriterFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import kafka.serializer.StringDecoder;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -17,6 +18,11 @@ import org.apache.spark.streaming.kafka.KafkaUtils;
 import scala.Tuple2;
 import scala.Tuple5;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +39,18 @@ public class PowerKafkaStreaming {
     int sparkCleanerTtl = 3600 * 2;
 
     public void run(String[] args) {
-        Config rootConf = ConfigFactory.load();
+        System.out.println(scala.tools.nsc.Properties.versionString());
+        printClassPath();
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("apocalypse.conf").getFile());
+        try {
+            System.out.println(org.apache.commons.io.IOUtils.toString(classLoader.getResourceAsStream("apocalypse.conf")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Config rootConf = ConfigFactory.parseResources(classLoader, "apocalypse.conf");
+        System.out.print(rootConf.entrySet());
         Config kafka = rootConf.getConfig("kafka");
         String KafkaTopicRaw = kafka.getString("topic.power");
         Config apocalypse = rootConf.getConfig("apocalypse");
@@ -74,18 +91,26 @@ public class PowerKafkaStreaming {
         // kafkaParams.put("metadata.broker.list", "localhost:" + embeddedKafka.kafkaConfig().port());
         kafkaParams.put("metadata.broker.list", brokers);
         Set<String> topicsSet = new HashSet<>(Arrays.asList(KafkaTopicRaw));
-        JavaPairInputDStream<String, String> rootStream = KafkaUtils.createDirectStream(
-                ssc,
-                String.class,
-                String.class,
-                StringDecoder.class,
-                StringDecoder.class,
-                kafkaParams,
-                topicsSet
-        );
+        printClassPath();
+
+        JavaPairInputDStream<String, String> rootStream = null;
+        try {
+            rootStream = KafkaUtils.createDirectStream(
+                    ssc,
+                    String.class,
+                    String.class,
+                    StringDecoder.class,
+                    StringDecoder.class,
+                    kafkaParams,
+                    topicsSet
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            printClassPath();
+        }
 
         JavaDStream<RawPowerData> kafkaStream = rootStream
-                .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(","))
+                .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(" "))
                 .map((Function<String[], RawPowerData>) array -> new RawPowerData(array));
 
         /** Saves the raw data to Cassandra - raw table. */
@@ -101,6 +126,16 @@ public class PowerKafkaStreaming {
 
         ssc.start();              // Start the computation
         ssc.awaitTermination();   // Wait for the computation to terminate
+    }
+
+    private void printClassPath() {
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+
+        for(URL url: urls){
+            System.out.println(url.getFile());
+        }
     }
 
     public static void main(String[] args) {

@@ -23,7 +23,7 @@ public class RawPowerData implements Serializable {
     }
 
     public RawPowerData(String[] array) {
-        this(array[0], array[1], new Date(Long.parseLong(array[2])), Long.parseLong(array[3]));
+        this(array[0], array[1], new Date(Long.parseLong(array[2]) * 1000), Long.parseLong(array[3]));
     }
 
     public String getHome() {

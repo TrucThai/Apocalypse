@@ -11,7 +11,7 @@ import java.util.TimeZone;
  * Created by Hung on 6/6/2016.
  */
 public class HourlyPowerData {
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHH");
 
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));

@@ -57,7 +57,7 @@ public class PowerKafkaStreaming {
         Config apocalypse = rootConf.getConfig("apocalypse");
         String CassandraKeyspace = apocalypse.getString("cassandra.power.keyspace");
         String CassandraTableRaw = apocalypse.getString("cassandra.power.table.raw");
-        String HourlyCassandraTable = apocalypse.getString("hourly_power_data");
+        String HourlyCassandraTable = apocalypse.getString("cassandra.power.table.hourly_power_data");
 
         Config spark = rootConf.getConfig("spark");
         String sparkMaster = spark.getString("master");// "local[*]";

@@ -1,14 +1,22 @@
 package com.biglabs.apocalypse.timeseries;
 
+import sun.util.resources.cldr.ig.LocaleNames_ig;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by Hung on 6/6/2016.
  */
 public class HourlyPowerData {
-
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
+    static {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
     private String hourKey;
     private String home;
     private String device;

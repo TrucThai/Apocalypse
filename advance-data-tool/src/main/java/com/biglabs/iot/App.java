@@ -32,6 +32,7 @@ public class App
         Map<String, DataSeed> seeds = Util.load(seedRoot);
         List<Device> devices = Util.loadDevices(deviceConf, seeds, publisher);
 
+        System.out.println("Number of device " + devices.size());
         System.out.println("Begin sending data");
 
         long counter = 0;

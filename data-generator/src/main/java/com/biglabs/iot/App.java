@@ -18,11 +18,16 @@ public class App
             System.exit(1);
         }
 
+        System.out.println(args[0]);
+        System.out.println(args[1]);
+        System.out.println(args[2]);
+        System.out.println(args[3]);
+
         String dataRoot = args[0];
         String destRoot = args[1];
 
-        long startTime = Long.getLong(args[2]);
-        long endTime = Long.getLong(args[3]);
+        long startTime = Long.parseLong(args[2]);
+        long endTime = Long.parseLong(args[3]);
 
 
         System.out.println("dataroot " + dataRoot);
@@ -68,8 +73,8 @@ public class App
                     String startLine = fileData.get(0);
                     String endLine = fileData.get(fileData.size() - 1);
 
-                    long fileDataStartTime = Long.getLong(startLine.split(" ")[0]);
-                    long fileDataEndTime = Long.getLong(endLine.split(" ")[0]);
+                    long fileDataStartTime = Long.parseLong(startLine.split(" ")[0]);
+                    long fileDataEndTime = Long.parseLong(endLine.split(" ")[0]);
 
                     long duration = fileDataEndTime - fileDataStartTime;
                     long startDiff = fileDataStartTime - startTime;
@@ -86,7 +91,7 @@ public class App
                             if(dataSplit.length < 2){
                                 continue;
                             }
-                            long dataTime = Long.getLong(dataSplit[0]);
+                            long dataTime = Long.parseLong(dataSplit[0]);
                             long writeTime = dataTime + shiftTime;
                             if(writeTime > endTime){
                                 isEnd = true;

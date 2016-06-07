@@ -86,19 +86,19 @@ public class Util {
                 for (String str: channelConfs){
                     if(str.contains("-")){
                         String[] channelRange = str.split("-");
-                        int startRange = Integer.getInteger(channelRange[0]);
-                        int endRange = Integer.getInteger(channelRange[1]);
+                        int startRange = Integer.parseInt(channelRange[0]);
+                        int endRange = Integer.parseInt(channelRange[1]);
                         for(int i = startRange; i <= endRange; i ++){
                             int channelNo = i;
-                            String header = lineSplit[0] + " chanel_" + channelNo;
-                            String seedKey = "chanel_" + channelNo + ".dat";
+                            String header = lineSplit[0] + " channel_" + channelNo;
+                            String seedKey = "channel_" + channelNo + ".dat";
                             Device device = new Device(publisher, seeds.get(seedKey), header);
                             devices.add(device);
                         }
                     } else{
-                        int channelNo = Integer.getInteger(str);
-                        String header = lineSplit[0] + " chanel_" + channelNo;
-                        String seedKey = "chanel_" + channelNo + ".dat";
+                        int channelNo = Integer.parseInt(str);
+                        String header = lineSplit[0] + " channel_" + channelNo;
+                        String seedKey = "channel_" + channelNo + ".dat";
                         Device device = new Device(publisher, seeds.get(seedKey), header);
                         devices.add(device);
                     }

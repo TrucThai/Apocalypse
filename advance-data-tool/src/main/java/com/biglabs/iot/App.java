@@ -32,21 +32,39 @@ public class App
         Map<String, DataSeed> seeds = Util.load(seedRoot);
         List<Device> devices = Util.loadDevices(deviceConf, seeds, publisher);
 
-        SendTask task = new SendTask(devices);
+        System.out.println("Begin sending data");
+
+        long counter = 0;
+        while(true){
+            for(Device device: devices){
+                try {
+                    device.run();
+                } catch (Exception ex){
+                    System.err.println(ex);
+                }
+            }
+            counter ++;
+            if(counter % 60 == 0){
+                System.out.println((new Date()) + " total sent messages " + counter * devices.size());
+            }
+            Thread.sleep(500);
+        }
+
+        /*SendTask task = new SendTask(devices);
         Timer timer = new Timer();
 
         timer.scheduleAtFixedRate(task, 10, 1 * 1000);
 
         System.out.println("Begin sending data.\nPress s to stop");
         String input = System.console().readLine();
-        while(!"s".equals(input)){
+        while (!"s".equals(input)) {
             System.out.println("Press s to stop");
             input = System.console().readLine();
         }
 
         timer.cancel();
 
-        System.out.println("Exit!");
+        System.out.println("Exit!");*/
     }
 
     public static class SendTask extends TimerTask{

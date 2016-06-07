@@ -39,16 +39,17 @@ public class PowerKafkaStreaming {
     int sparkCleanerTtl = 3600 * 2;
 
     public void run(String[] args) {
-        System.out.println(scala.tools.nsc.Properties.versionString());
-        printClassPath();
+        //System.out.println(scala.tools.nsc.Properties.versionString());
+        //printClassPath();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("apocalypse.conf").getFile());
+
         try {
             System.out.println(org.apache.commons.io.IOUtils.toString(classLoader.getResourceAsStream("apocalypse.conf")));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         Config rootConf = ConfigFactory.parseResources(classLoader, "apocalypse.conf");
         System.out.print(rootConf.entrySet());
         Config kafka = rootConf.getConfig("kafka");
@@ -56,6 +57,7 @@ public class PowerKafkaStreaming {
         Config apocalypse = rootConf.getConfig("apocalypse");
         String CassandraKeyspace = apocalypse.getString("cassandra.power.keyspace");
         String CassandraTableRaw = apocalypse.getString("cassandra.power.table.raw");
+        String HourlyCassandraTable = apocalypse.getString("cassandra.power.table.hourly_power_data");
 
         Config spark = rootConf.getConfig("spark");
         String sparkMaster = spark.getString("master");// "local[*]";
@@ -91,7 +93,7 @@ public class PowerKafkaStreaming {
         // kafkaParams.put("metadata.broker.list", "localhost:" + embeddedKafka.kafkaConfig().port());
         kafkaParams.put("metadata.broker.list", brokers);
         Set<String> topicsSet = new HashSet<>(Arrays.asList(KafkaTopicRaw));
-        printClassPath();
+        //printClassPath();
 
         JavaPairInputDStream<String, String> rootStream = null;
         try {
@@ -106,23 +108,33 @@ public class PowerKafkaStreaming {
             );
         } catch (Exception e) {
             e.printStackTrace();
-            printClassPath();
         }
 
-        JavaDStream<RawPowerData> kafkaStream = rootStream
+        JavaDStream<RawPowerData> powerStream = rootStream
                 .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(" "))
                 .map((Function<String[], RawPowerData>) array -> new RawPowerData(array));
 
         /** Saves the raw data to Cassandra - raw table. */
-        kafkaStream.foreachRDD((JavaRDD<RawPowerData> x) -> {
+        powerStream.foreachRDD((JavaRDD<RawPowerData> x) -> {
             if (x.count() <= 0) {
                 return;
             }
+
             javaFunctions(x).writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawPowerData.class))
                     .saveToCassandra();
 
             // saveToEs(x, "spark/power");
         });
+
+        powerStream.map((Function<RawPowerData, HourlyPowerData>) raw -> new HourlyPowerData(raw))
+                .foreachRDD((JavaRDD<HourlyPowerData> x) -> {
+                    if (x.count() <= 0) {
+                        return;
+                    }
+                    javaFunctions(x).writerBuilder(CassandraKeyspace, HourlyCassandraTable, mapToRow(HourlyPowerData.class))
+                            .saveToCassandra();
+                });
+
 
         ssc.start();              // Start the computation
         ssc.awaitTermination();   // Wait for the computation to terminate

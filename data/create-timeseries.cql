@@ -111,3 +111,12 @@ CREATE TABLE raw_power_data (
    value int,
    PRIMARY KEY ((home), device, time)
 );
+
+CREATE TABLE hourly_power_data (
+   home text,
+   device text,
+   hour_key text,
+   time timestamp,
+   value int,
+   PRIMARY KEY ((home, device, hour_key), time)
+)  WITH CLUSTERING ORDER BY (time DESC);

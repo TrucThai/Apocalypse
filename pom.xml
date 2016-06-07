@@ -19,6 +19,7 @@
         <module>data-tool</module>
         <module>sparkstream-tool</module>
         <module>tcp-data-tool</module>
+        <module>data-generator</module>
     </modules>
 
     <properties>

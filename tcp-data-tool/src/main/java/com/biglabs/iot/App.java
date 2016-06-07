@@ -55,7 +55,7 @@ public class App
 
                     while (line != null) {
                         numberMsg++;
-                        outToServer.writeBytes(line + '\n');
+                        outToServer.writeBytes(line);
                         line = bufferedReader.readLine();
                     }
 

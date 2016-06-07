@@ -22,8 +22,6 @@ public class DataSeed {
         this.fullPath = fullPath;
     }
 
-
-
     public ArrayList<String> getData() {
         return data;
     }
@@ -36,11 +34,7 @@ public class DataSeed {
     private String fullPath;
     private ArrayList<String> data;
 
-    public DataSeed(){
-
-    }
-
-    public DataSeed(String fileName, String fullPath, ArrayList<String> data){
+    public DataSeed(String fileName, String fullPath, ArrayList<String> data) {
         this.fileName = fileName;
         this.fullPath = fullPath;
         this.data = data;

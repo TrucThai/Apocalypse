@@ -7,6 +7,7 @@ package com.biglabs.iot;
 public class Device implements Runnable{
     private DataPublisher publisher;
     private DataSeed dataSeed;
+    private String header;
     private int dataCursor = -1;
 
     public DataPublisher getPublisher() {
@@ -32,8 +33,6 @@ public class Device implements Runnable{
     public void setHeader(String header) {
         this.header = header;
     }
-
-    private String header;
 
     public Device(){
 

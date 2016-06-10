@@ -75,7 +75,7 @@ public class PowerKafkaStreaming {
         conf.set("es.index.auto.create", "true");
 
         // JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
-        JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(2000));
+        JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(5000));
 
         String brokers;
         // try  {

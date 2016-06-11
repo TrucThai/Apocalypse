@@ -2,6 +2,8 @@ package com.biglabs.apocalypse.timeseries;
 
 import com.datastax.spark.connector.embedded.EmbeddedKafka;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
+import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
+import com.datastax.spark.connector.japi.DStreamJavaFunctions;
 import com.datastax.spark.connector.writer.RowWriterFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -31,7 +33,7 @@ import java.util.Set;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import static org.elasticsearch.spark.rdd.api.java.JavaEsSpark.saveToEs;
-
+import static com.datastax.spark.connector.japi.CassandraStreamingJavaUtil.javaFunctions;
 /**
  * Created by tail on 5/28/2016.
  */
@@ -44,11 +46,11 @@ public class PowerKafkaStreaming {
 
         ClassLoader classLoader = getClass().getClassLoader();
 
-        try {
-            System.out.println(org.apache.commons.io.IOUtils.toString(classLoader.getResourceAsStream("apocalypse.conf")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            System.out.println(org.apache.commons.io.IOUtils.toString(classLoader.getResourceAsStream("apocalypse.conf")));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         Config rootConf = ConfigFactory.parseResources(classLoader, "apocalypse.conf");
         System.out.print(rootConf.entrySet());
@@ -112,29 +114,24 @@ public class PowerKafkaStreaming {
 
         JavaDStream<RawPowerData> powerStream = rootStream
                 .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(" "))
-                .map((Function<String[], RawPowerData>) array -> new RawPowerData(array));
-
-        /** Saves the raw data to Cassandra - raw table. */
-        powerStream.foreachRDD((JavaRDD<RawPowerData> x) -> {
-            if (x.count() <= 0) {
-                return;
-            }
-
-            javaFunctions(x).writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawPowerData.class))
-                    .saveToCassandra();
-
-            // saveToEs(x, "spark/power");
-        });
-
-        powerStream.map((Function<RawPowerData, HourlyPowerData>) raw -> new HourlyPowerData(raw))
-                .foreachRDD((JavaRDD<HourlyPowerData> x) -> {
-                    if (x.count() <= 0) {
-                        return;
+                .map((Function<String[], RawPowerData>) array -> {
+                    if (array.length >= 4) {
+                        return new RawPowerData(array);
                     }
-                    javaFunctions(x).writerBuilder(CassandraKeyspace, HourlyCassandraTable, mapToRow(HourlyPowerData.class))
-                            .saveToCassandra();
+
+                    return null;
                 });
 
+        CassandraStreamingJavaUtil.<RawPowerData>javaFunctions(powerStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawPowerData.class))
+                .saveToCassandra();
+
+        JavaDStream<HourlyPowerData> hourlyPowerDataStream = powerStream
+                .map((Function<RawPowerData, HourlyPowerData>) raw -> new HourlyPowerData(raw));
+
+        CassandraStreamingJavaUtil.<HourlyPowerData>javaFunctions(hourlyPowerDataStream)
+                .writerBuilder(CassandraKeyspace, HourlyCassandraTable, mapToRow(HourlyPowerData.class))
+                .saveToCassandra();
 
         ssc.start();              // Start the computation
         ssc.awaitTermination();   // Wait for the computation to terminate

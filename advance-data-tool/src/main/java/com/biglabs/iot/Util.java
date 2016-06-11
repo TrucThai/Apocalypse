@@ -83,24 +83,42 @@ public class Util {
             try{
                 String[] lineSplit = line.split(" ");
                 String[] channelConfs = lineSplit[1].split(",");
-                for (String str: channelConfs){
-                    if(str.contains("-")){
-                        String[] channelRange = str.split("-");
-                        int startRange = Integer.parseInt(channelRange[0]);
-                        int endRange = Integer.parseInt(channelRange[1]);
-                        for(int i = startRange; i <= endRange; i ++){
-                            int channelNo = i;
-                            String header = lineSplit[0] + " channel_" + channelNo;
+                String houseConf = lineSplit[0];
+                ArrayList<String> houses = new ArrayList<>();
+                if(houseConf.contains("-")){
+
+                    String[] houseRange = houseConf.split("-");
+                    int houseStart = Integer.parseInt(houseRange[0]);
+                    int houseEnd = Integer.parseInt(houseRange[1]);
+                    for(int i = houseStart;i <= houseEnd;i ++){
+                        String house = "house" + i;
+                        houses.add(house);
+                    }
+                }else{
+                    String house = houseConf.startsWith("house") ? houseConf : "house" + houseConf;
+                    houses.add(house);
+                }
+
+                for(String house: houses){
+                    for (String str: channelConfs){
+                        if(str.contains("-")){
+                            String[] channelRange = str.split("-");
+                            int startRange = Integer.parseInt(channelRange[0]);
+                            int endRange = Integer.parseInt(channelRange[1]);
+                            for(int i = startRange; i <= endRange; i ++){
+                                int channelNo = i;
+                                String header = house + " channel_" + channelNo;
+                                String seedKey = "channel_" + channelNo + ".dat";
+                                Device device = new Device(publisher, seeds.get(seedKey), header);
+                                devices.add(device);
+                            }
+                        } else{
+                            int channelNo = Integer.parseInt(str);
+                            String header = house + " channel_" + channelNo;
                             String seedKey = "channel_" + channelNo + ".dat";
                             Device device = new Device(publisher, seeds.get(seedKey), header);
                             devices.add(device);
                         }
-                    } else{
-                        int channelNo = Integer.parseInt(str);
-                        String header = lineSplit[0] + " channel_" + channelNo;
-                        String seedKey = "channel_" + channelNo + ".dat";
-                        Device device = new Device(publisher, seeds.get(seedKey), header);
-                        devices.add(device);
                     }
                 }
             } catch (Exception ex){

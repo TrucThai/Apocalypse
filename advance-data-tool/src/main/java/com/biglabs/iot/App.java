@@ -48,7 +48,7 @@ public class App
             if(counter % 60 == 0){
                 System.out.println((new Date()) + " total sent messages " + counter * devices.size());
             }
-            Thread.sleep(500);
+            Thread.sleep(900);
         }
 
         /*SendTask task = new SendTask(devices);

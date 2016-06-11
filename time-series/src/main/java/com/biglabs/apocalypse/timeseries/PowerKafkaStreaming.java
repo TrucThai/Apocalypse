@@ -70,7 +70,8 @@ public class PowerKafkaStreaming {
                 .setAppName(PowerKafkaStreaming.class.getSimpleName())
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
-                .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl));
+                .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl))
+                .set("spark.executor.memory", "1g");
 
         // es
 

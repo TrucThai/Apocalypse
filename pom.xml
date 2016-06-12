@@ -21,6 +21,8 @@
         <module>tcp-data-tool</module>
         <module>data-generator</module>
         <module>advance-data-tool</module>
+        <module>es-ingestion</module>
+        <module>common</module>
     </modules>
 
     <properties>

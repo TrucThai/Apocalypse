@@ -1,29 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.biglabs</groupId>
         <artifactId>apocalypse</artifactId>
+        <groupId>com.biglabs</groupId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.biglabs.apocalypse</groupId>
-    <artifactId>timeseries</artifactId>
-    <packaging>jar</packaging>
-    <name>Biglabs Time Series</name>
-
-    <properties>
-        <sbt.project.name>examples</sbt.project.name>
-        <build.testJarPhase>none</build.testJarPhase>
-        <build.copyDependenciesPhase>package</build.copyDependenciesPhase>
-        <flume.deps.scope>provided</flume.deps.scope>
-        <hadoop.deps.scope>provided</hadoop.deps.scope>
-        <hive.deps.scope>provided</hive.deps.scope>
-        <parquet.deps.scope>provided</parquet.deps.scope>
-    </properties>
+    <artifactId>es-ingestion</artifactId>
 
     <dependencies>
         <!--
@@ -64,7 +50,7 @@
             <artifactId>spark-cassandra-connector_2.11</artifactId>
             <version>1.6.0-M1</version>
         </dependency>
-        <!-- http://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector-java_2.10 -->
+
         <dependency>
             <groupId>com.datastax.spark</groupId>
             <artifactId>spark-cassandra-connector-java_2.11</artifactId>
@@ -144,7 +130,6 @@
             <artifactId>elasticsearch-spark_2.11</artifactId>
             <version>2.3.2</version>
         </dependency>
-
         <dependency>
             <artifactId>common</artifactId>
             <groupId>com.biglabs</groupId>
@@ -237,5 +222,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

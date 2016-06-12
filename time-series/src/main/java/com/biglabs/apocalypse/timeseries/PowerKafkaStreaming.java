@@ -71,7 +71,11 @@ public class PowerKafkaStreaming {
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl))
-                .set("spark.executor.memory", "1g");
+                .set("spark.executor.memory", "1g")
+                .set("spark.cassandra.output.batch.size.rows", "5120")
+                .set("spark.cassandra.output.concurrent.writes", "100")
+                .set("spark.cassandra.output.batch.size.bytes", "100000")
+                .set("spark.cassandra.connection.keep_alive_ms","60000");
 
         // es
 

@@ -10,6 +10,7 @@ import com.typesafe.config.ConfigFactory;
 import kafka.serializer.StringDecoder;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.Duration;
@@ -71,18 +72,24 @@ public class PowerKafkaStreaming {
                 .setMaster(sparkMaster)
                 .set("spark.cassandra.connection.host", cassandraHosts)
                 .set("spark.cleaner.ttl", String.valueOf(sparkCleanerTtl))
-                .set("spark.executor.memory", "1g")
-                .set("spark.cassandra.output.batch.size.rows", "5120")
+                .set("spark.executor.memory", "8g")
+                //.set("spark.eventLog.enabled", "true")
+                .set("spark.logConf", "true")
+                .set("spark.cassandra.output.batch.size.rows", "400")
                 .set("spark.cassandra.output.concurrent.writes", "100")
-                .set("spark.cassandra.output.batch.size.bytes", "100000")
-                .set("spark.cassandra.connection.keep_alive_ms","60000");
+                .set("spark.cassandra.output.batch.size.bytes", "2000000")
+                .set("spark.executor.cores", "5")
+                .set("spark.cassandra.connection.keep_alive_ms", "60000");
 
         // es
 
         conf.set("es.index.auto.create", "true");
+        conf.set("es.nodes", "192.168.1.84");
+        conf.set("es.port", "9200");
+        conf.set("es.nodes.wan.only", "true");
 
         // JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
-        JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(5000));
+        JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(15000));
 
         String brokers;
         // try  {
@@ -117,27 +124,49 @@ public class PowerKafkaStreaming {
             e.printStackTrace();
         }
 
-        JavaDStream<RawPowerData> powerStream = rootStream
+        JavaDStream<HourlyPowerData> powerStream = rootStream
                 .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(" "))
-                .map((Function<String[], RawPowerData>) array -> {
-                    if (array.length >= 4) {
-                        return new RawPowerData(array);
-                    }
-
-                    return null;
+                .map((Function<String[], HourlyPowerData>) array -> {
+                    return new HourlyPowerData(array);
                 });
 
-        CassandraStreamingJavaUtil.<RawPowerData>javaFunctions(powerStream)
-                .writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(RawPowerData.class))
-                .saveToCassandra();
-
-        JavaDStream<HourlyPowerData> hourlyPowerDataStream = powerStream
-                .map((Function<RawPowerData, HourlyPowerData>) raw -> new HourlyPowerData(raw));
-
-        CassandraStreamingJavaUtil.<HourlyPowerData>javaFunctions(hourlyPowerDataStream)
+        CassandraStreamingJavaUtil.<HourlyPowerData>javaFunctions(powerStream)
                 .writerBuilder(CassandraKeyspace, HourlyCassandraTable, mapToRow(HourlyPowerData.class))
                 .saveToCassandra();
 
+//        powerStream.map((Function<HourlyPowerData, Long>) powerData -> { return powerData.getValue();})
+//        .reduce((x, y) -> {
+//            return x + y;
+//        }).map(x -> {
+//            return new TimeValue(x / 4500000);
+//        })
+//        .foreachRDD((JavaRDD<TimeValue> x) -> {
+//            if (x.count() <= 0) {
+//                return;
+//            }
+//            saveToEs(x, "spark/power_sum_total");
+//        });
+
+        powerStream.map(powerData -> {
+            String houseId = powerData.getHome().substring(5);
+            int house = (Integer.parseInt(houseId) + 999) / 1000 - 1;
+            long val = powerData.getValue() / 4500000;
+            switch (house)
+            {
+                case 0:
+                    return new Time3Value(val, 0, 0);
+                case 1:
+                    return new Time3Value(0, val, 0);
+                default:
+                    return new Time3Value(0,0,val);
+            }
+        }).reduce((t1, t2) -> {return new Time3Value(t1.getValue1() + t2.getValue1(), t1.getValue2() + t2.getValue2(), t1.getValue3() + t2.getValue3());})
+                .foreachRDD(x -> {
+                    if (x.count() <= 0) {
+                        return;
+                    }
+                    saveToEs(x, "spark/power_sum_total");
+                });
         ssc.start();              // Start the computation
         ssc.awaitTermination();   // Wait for the computation to terminate
     }

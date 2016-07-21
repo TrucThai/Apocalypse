@@ -23,6 +23,7 @@
         <module>advance-data-tool</module>
         <module>es-ingestion</module>
         <module>common</module>
+        <module>report</module>
     </modules>
 
     <properties>

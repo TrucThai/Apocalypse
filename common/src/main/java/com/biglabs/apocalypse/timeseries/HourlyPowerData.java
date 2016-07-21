@@ -34,6 +34,11 @@ public class HourlyPowerData {
     public HourlyPowerData() {
     }
 
+    public HourlyPowerData(String[] array) {
+        this(array[0], array[1], new Date(Long.parseLong(array[2]) * 1000), Long.parseLong(array[3]));
+    }
+
+
     public HourlyPowerData(RawPowerData raw) {
         this(raw.getHome(), raw.getDevice(), raw.getTime(), raw.getValue());
     }

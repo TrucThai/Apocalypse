@@ -24,6 +24,7 @@
         <module>es-ingestion</module>
         <module>common</module>
         <module>report</module>
+        <module>energy-tool</module>
     </modules>
 
     <properties>

@@ -13,18 +13,10 @@
         <maven>${maven.version}</maven>
     </prerequisites>
 
-
     <modules>
-        <module>time-series</module>
-        <module>data-tool</module>
-        <module>sparkstream-tool</module>
-        <module>tcp-data-tool</module>
-        <module>data-generator</module>
-        <module>advance-data-tool</module>
-        <module>es-ingestion</module>
-        <module>common</module>
-        <module>report</module>
         <module>energy</module>
+        <module>general</module>
+        <module>spark-job</module>
     </modules>
 
     <properties>

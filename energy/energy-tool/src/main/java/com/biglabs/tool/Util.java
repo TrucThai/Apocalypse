@@ -14,31 +14,8 @@ import java.util.Map;
  */
 public class Util {
 
-    public static ArrayList<File> listFiles(String dir) {
-        ArrayList<File> files = new ArrayList<>();
-        listFiles(dir, files);
-        return files;
-    }
-
-    public static void listFiles(String dir, ArrayList<File> files) {
-        File dirFile = new File(dir);
-        if (dirFile.isDirectory()) {
-            File[] fileList = dirFile.listFiles();
-            for (File file : fileList) {
-                if (file.isFile()) {
-                    files.add(file);
-                } else if (file.isDirectory()) {
-                    listFiles(file.getAbsolutePath(), files);
-                }
-            }
-        } else if (dirFile.isFile()) {
-            files.add(dirFile);
-        }
-
-    }
-
     public static Map<String, DataSeed> load(String seedRoot) {
-        ArrayList<File> files = Util.listFiles(seedRoot);
+        ArrayList<File> files = FileUtils.listFiles(seedRoot);
         Map<String, DataSeed> seeds = new HashMap<>();
         for (File file : files) {
             try {

@@ -20,6 +20,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.biglabs.tool</groupId>
+            <artifactId>energy-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
             <version>0.10.0.0</version>

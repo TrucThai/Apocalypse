@@ -1,4 +1,4 @@
-package com.biglabs.tool.template;
+package com.biglabs.tool.model;
 
 import java.io.BufferedReader;
 import java.io.File;

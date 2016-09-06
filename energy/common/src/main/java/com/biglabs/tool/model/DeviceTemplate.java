@@ -1,4 +1,6 @@
-package com.biglabs.tool.template;
+package com.biglabs.tool.model;
+
+import com.biglabs.tool.model.poco.Device;
 
 /**
  * Created by thainguy on 9/5/2016.
@@ -24,5 +26,16 @@ public class DeviceTemplate {
 
     public DeviceSeed getDeviceSeed() {
         return deviceSeed;
+    }
+
+    public Device create(String houseName){
+        Device device = new Device(houseName + "-" + channel, name, "", houseName);
+        return device;
+    }
+
+    public RTDevice createRT(String houseName){
+        RTDevice device = new RTDevice(houseName + "-" + channel, name, "", houseName);
+        device.setSeed(deviceSeed);
+        return device;
     }
 }

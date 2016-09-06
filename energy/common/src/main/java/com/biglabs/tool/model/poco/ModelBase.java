@@ -1,4 +1,4 @@
-package com.biglabs.tool.model;
+package com.biglabs.tool.model.poco;
 
 import com.sun.javafx.sg.prism.NGShape;
 

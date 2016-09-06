@@ -1,6 +1,6 @@
 package com.biglabs.tool;
 
-import com.biglabs.tool.model.ModelBase;
+import com.biglabs.tool.model.poco.ModelBase;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,5 +35,5 @@ public abstract class LoaderBase<T extends ModelBase> {
         return regions;
     }
 
-    protected abstract T create(String line);
+    protected abstract T create(String line) throws Exception;
 }

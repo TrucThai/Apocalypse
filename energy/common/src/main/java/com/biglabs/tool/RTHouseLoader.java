@@ -1,10 +1,7 @@
 package com.biglabs.tool;
 
-import com.biglabs.tool.model.HouseDevice;
-import com.biglabs.tool.model.RegionHouse;
-import com.biglabs.tool.model.poco.House;
-import com.biglabs.tool.model.poco.Region;
 import com.biglabs.tool.model.HouseTemplate;
+import com.biglabs.tool.model.RTHouse;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,29 +12,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by thainguy on 9/1/2016.
+ * Created by thainguy on 9/6/2016.
  */
-public class HouseLoader{
-    private Map<String, RegionHouse> regions;
+public class RTHouseLoader {
     private Map<String, HouseTemplate> houseTemplates;
 
-    public HouseLoader(){}
+    public RTHouseLoader(){}
 
-    public HouseLoader(Map<String, Region> regions, Map<String, HouseTemplate> houseTemplates){
-        this.regions = convert(regions);
+    public RTHouseLoader(Map<String, HouseTemplate> houseTemplates){
         this.houseTemplates = houseTemplates;
     }
 
-    protected Map<String, RegionHouse> convert(Map<String, Region> regions){
-        Map<String, RegionHouse> rhs = new HashMap<>();
-        for (Region region: regions.values()) {
-            RegionHouse rh = new RegionHouse(region);
-            rhs.put(rh.getId(), rh);
-        }
-        return rhs;
-    }
-
-    public Map<String, RegionHouse> load(String configFile) throws Exception {
+    public Map<String, RTHouse> load(String configFile) throws Exception {
         File file = new File(configFile);
         if (!file.exists()) {
             throw new Exception(configFile + " doesn't exist");
@@ -46,6 +32,7 @@ public class HouseLoader{
             throw new Exception(configFile + " is directory.");
         }
 
+        Map<String, RTHouse> houseMap = new HashMap<>();
         Reader reader = new FileReader(file.getAbsolutePath());
         BufferedReader bufferedReader = new BufferedReader(reader);
         String line = bufferedReader.readLine();
@@ -68,16 +55,15 @@ public class HouseLoader{
                 houses.add(house);
             }
 
-            RegionHouse rh = regions.get(regionId);
             HouseTemplate template = houseTemplates.get(templateName);
             for(String houseName: houses){
-                HouseDevice house = template.create(houseName);
+                RTHouse house = template.createRT(houseName);
                 house.setRegionId(regionId);
-                rh.getHouses().add(house);
+                houseMap.put(house.getId(), house);
             }
             line = bufferedReader.readLine();
         }
         bufferedReader.close();
-        return regions;
+        return houseMap;
     }
 }

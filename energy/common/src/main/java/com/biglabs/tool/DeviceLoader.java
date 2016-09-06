@@ -1,6 +1,6 @@
 package com.biglabs.tool;
 
-import com.biglabs.tool.model.Device;
+import com.biglabs.tool.model.poco.Device;
 
 /**
  * Created by thainguy on 9/5/2016.

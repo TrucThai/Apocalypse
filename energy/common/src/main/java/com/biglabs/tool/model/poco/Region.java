@@ -1,4 +1,4 @@
-package com.biglabs.tool.model;
+package com.biglabs.tool.model.poco;
 
 import java.io.Serializable;
 

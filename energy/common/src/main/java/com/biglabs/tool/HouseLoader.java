@@ -37,13 +37,22 @@ public class HouseLoader{
         return rhs;
     }
 
+    public Map<String, RegionHouse> load(String root, String configFile) throws Exception{
+        File file = new File(root, configFile);
+        return load(file);
+    }
+
     public Map<String, RegionHouse> load(String configFile) throws Exception {
         File file = new File(configFile);
+        return load(file);
+    }
+
+    protected Map<String, RegionHouse> load(File file) throws Exception{
         if (!file.exists()) {
-            throw new Exception(configFile + " doesn't exist");
+            throw new Exception(file.getName() + " doesn't exist");
         }
         if (file.isDirectory()) {
-            throw new Exception(configFile + " is directory.");
+            throw new Exception(file.getName() + " is directory.");
         }
 
         Reader reader = new FileReader(file.getAbsolutePath());

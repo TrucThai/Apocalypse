@@ -1,5 +1,8 @@
 package com.biglabs.tool;
 
+import com.biglabs.tool.model.HouseTemplate;
+import com.biglabs.tool.model.RTHouse;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +15,11 @@ import java.util.Properties;
 public class App 
 {
     public static void main( String[] args ) throws Exception {
-        String seedRoot = args[0];
-        String deviceConf = args[1];
-        String brokers = args[2];
-        String topics = args[3];
+        String configRoot = args[0];
+        String brokers = args[1];
+        String topics = args[2];
 
-        System.out.println("seedRoot " + seedRoot);
-        System.out.println("deviceConf " + deviceConf);
+        System.out.println("configRoot " + configRoot);
         System.out.println("brokers " + brokers);
         System.out.println("topics " + topics);
 
@@ -31,27 +32,35 @@ public class App
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        DataPublisher publisher = new KafkaPublisher(props, topics);
-        Map<String, DataSeed> seeds = Util.load(seedRoot);
-        List<Device> devices = Util.loadDevices(deviceConf, seeds, publisher);
+        HouseTemplateLoader htl = new HouseTemplateLoader();
+        Map<String, HouseTemplate> houseTemplateMap = htl.load(configRoot, "housetemplates.conf");
+        RTHouseLoader rtHouseLoader = new RTHouseLoader(houseTemplateMap);
+        Map<String, RTHouse> houses = rtHouseLoader.load(configRoot, "houses.conf");
 
-        System.out.println("Number of device " + devices.size());
+        DataPublisher publisher = new KafkaPublisher(props, topics);
+
+        long numDevices = 0;
+        for (RTHouse house: houses.values()) {
+            numDevices += house.getDevices().size();
+        }
+        System.out.println("Number of device " + numDevices);
         System.out.println("Begin sending data");
 
         long counter = 0;
         while(true){
-            for(Device device: devices){
+            for (RTHouse house: houses.values()) {
                 try {
-                    device.run();
+                    house.run(publisher);
                 } catch (Exception ex){
                     System.err.println(ex);
                 }
             }
             counter ++;
             if(counter % 60 == 0){
-                System.out.println((new Date()) + " total sent messages " + counter * devices.size());
+                System.out.println((new Date()) + " total sent messages " + counter * numDevices);
             }
             Thread.sleep(900);
         }
     }
+
 }

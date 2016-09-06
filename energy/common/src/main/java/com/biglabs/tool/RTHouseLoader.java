@@ -23,13 +23,22 @@ public class RTHouseLoader {
         this.houseTemplates = houseTemplates;
     }
 
+    public Map<String, RTHouse> load(String root, String configFile) throws  Exception{
+        File file = new File(root, configFile);
+        return load(file);
+    }
+
     public Map<String, RTHouse> load(String configFile) throws Exception {
         File file = new File(configFile);
+        return load(file);
+    }
+
+    protected Map<String, RTHouse> load(File file) throws Exception{
         if (!file.exists()) {
-            throw new Exception(configFile + " doesn't exist");
+            throw new Exception(file.getName() + " doesn't exist");
         }
         if (file.isDirectory()) {
-            throw new Exception(configFile + " is directory.");
+            throw new Exception(file.getName() + " is directory.");
         }
 
         Map<String, RTHouse> houseMap = new HashMap<>();

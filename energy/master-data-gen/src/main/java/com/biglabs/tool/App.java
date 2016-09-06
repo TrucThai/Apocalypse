@@ -22,7 +22,7 @@ public class App {
         HouseTemplateLoader htl = new HouseTemplateLoader();
         Map<String, HouseTemplate> houseTemplateMap = htl.load(configRoot, "housetemplates.conf");
 
-        HouseLoader houseLoader = new HouseLoader();
+        HouseLoader houseLoader = new HouseLoader(regions, houseTemplateMap);
         Map<String, RegionHouse> regionHouseMap = houseLoader.load(configRoot, "houses.conf");
 
         ObjectMapper mapper = new ObjectMapper();

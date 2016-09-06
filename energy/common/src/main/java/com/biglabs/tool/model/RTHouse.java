@@ -1,5 +1,6 @@
 package com.biglabs.tool.model;
 
+import com.biglabs.tool.DataPublisher;
 import com.biglabs.tool.model.poco.House;
 
 import java.util.ArrayList;
@@ -22,5 +23,12 @@ public class RTHouse extends House{
 
     public void setDevices(List<RTDevice> devices) {
         this.devices = devices;
+    }
+
+    public void run(DataPublisher publisher){
+        long time = System.currentTimeMillis()/1000;
+        for (RTDevice device: devices) {
+            device.run(publisher, time);
+        }
     }
 }

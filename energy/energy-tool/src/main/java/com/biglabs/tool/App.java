@@ -39,6 +39,8 @@ public class App
 
         DataPublisher publisher = new KafkaPublisher(props, topics);
 
+        System.out.println("Number of houses " + houses.size());
+
         long numDevices = 0;
         for (RTHouse house: houses.values()) {
             numDevices += house.getDevices().size();

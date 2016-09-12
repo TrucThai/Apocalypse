@@ -17,7 +17,7 @@ public class DeviceTemplate {
         this.channel = channel;
         this.name = name;
         this.seedPath = seedPath;
-        this.deviceSeed = new DeviceSeed("chanel_" + channel + ".dat", seedPath);
+        this.deviceSeed = new DeviceSeed("channel_" + channel + ".dat", seedPath);
     }
 
     public void init() throws Exception {

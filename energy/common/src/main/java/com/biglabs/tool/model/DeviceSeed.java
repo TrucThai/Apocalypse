@@ -26,6 +26,7 @@ public class DeviceSeed {
     }
 
     public void init() throws Exception{
+        System.out.println("Load file " +  workingDir + "/" + fileName);
         File file = new File(workingDir, fileName);
         Reader reader = new FileReader(file.getAbsolutePath());
         BufferedReader bufferedReader = new BufferedReader(reader);

@@ -16,16 +16,21 @@ public class App {
         String configRoot = args[0];
         String jsonFile = args[1];
 
+        System.out.println("Load region");
         RegionLoader regionLoader = new RegionLoader();
         Map<String, Region> regions = regionLoader.load(configRoot, "regions.conf");
 
+        System.out.println("Load template");
         HouseTemplateLoader htl = new HouseTemplateLoader();
         Map<String, HouseTemplate> houseTemplateMap = htl.load(configRoot, "housetemplates.conf");
 
+        System.out.println("Generate data");
         HouseLoader houseLoader = new HouseLoader(regions, houseTemplateMap);
         Map<String, RegionHouse> regionHouseMap = houseLoader.load(configRoot, "houses.conf");
 
+        System.out.println("Save to file");
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(new File(jsonFile), regionHouseMap.values());
+        System.out.println("Done!!");
     }
 }

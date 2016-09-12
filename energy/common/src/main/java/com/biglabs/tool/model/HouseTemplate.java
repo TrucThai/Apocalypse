@@ -35,10 +35,12 @@ public class HouseTemplate extends House{
         String line = bufferedReader.readLine();
         deviceTemplates = new ArrayList<>();
         while (line != null) {
+            System.out.println("Process line: " + line);
             String[] split = line.split(" ");
             DeviceTemplate deviceTemplate = new DeviceTemplate(split[0], split[1], seedDir);
             deviceTemplate.init();
             deviceTemplates.add(deviceTemplate);
+            line = bufferedReader.readLine();
         }
     }
 

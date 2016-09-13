@@ -1,0 +1,51 @@
+<br>line1
+<br>line2
+<br>line3
+
+./run-example streaming.JavaDirectKafkaWordCount localhost:9092 tutorial
+
+echo "Hello, World haha hoho haha hehe hello" | ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic tutorial
+
+./bin/flume-ng agent --conf ./conf --conf-file ./conf/flume-syslog-kafka.conf --name a1 -Dflume.root.logger=INFO,console
+
+/opt/iot/data/uk-power-data/house_3
+
+./bin/kafka-console-consumer.sh --zookeeper 192.168.1.131:2181 --topic testdata --from-beginning
+
+echo "Hello, World" | ./bin/kafka-console-producer.sh --broker-list 192.168.1.131:9092,192.168.1.111:9092 --topic testdata > /dev/null
+
+java -jar data-tool-1.0.0-SNAPSHOT-jar-with-dependencies.jar 192.168.1.131:9092 testdata /opt/iot/data/uk-power-data/
+
+java -jar data-tool-1.0.0-SNAPSHOT-jar-with-dependencies.jar 192.168.1.131:9092,192.168.1.111:9092 testdata /opt/iot/data/uk-power-data/house_3
+
+./bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic chanel-data-raw
+
+/usr/bin/loggen localhost 1514 -r 1000000 -s 200 –interval=300
+
+
+##
+
+#source s_file { file("/opt/kafka_2.11-0.9.0.1/logs/server.log" flags(no-parse)); };
+
+source s_network { tcp(port(1514) flags(no-parse)); };
+
+#destination d_file { file("/opt/log/kafka.log"); };
+
+#source s_tail { file("/opt/kafka_2.11-0.9.0.1/logs/kafkaServer-gc.log"
+#               follow-freq(1) flags(no-parse)); };
+
+destination d_tcp { network("localhost" port(5140) transport(tcp)); };
+
+log {
+    source(s_network);
+    destination(d_tcp);
+};
+##
+
+./bin/kafka-console-consumer.sh --zookeeper 192.168.1.131:2181 --topic chanel-data-raw
+
+./bin/flume-ng agent --conf ./conf --conf-file ./conf/syslog-kafka.conf --name a1 -Dflume.root.logger=INFO,console
+
+./make-distribution.sh --name custom-spark --tgz -Psparkr -Pyarn -Phadoop-2.4 -Dscala-2.11 -DskipTests clean package
+
+./make-distribution.sh --name custom-spark --tgz -Psparkr -Pyarn -Phadoop-2.6 -Dscala-2.11 -DskipTests clean package

@@ -1,0 +1,215 @@
+https://databricks.gitbooks.io/databricks-spark-reference-applications/content/timeseries/run.html
+
+- Support many device types => data fields is vary => spark job for each device type??
+- Master data integration => spark
+
+## Preparation
+ - Install Cassandra
+ - Install Apache Spark Cluster standalone
+ - Create github repository
+ 
+## Research
+ - Deploy spark cluster:
+  + Standalone: done
+  + YARN: later
+  + Mesos: later
+ - Submit job to spark: done
+ - Schedule job in spark
+ - Kafka
+ 
+ spark-class org.apache.spark.deploy.Client kill spark://0.0.0.0:7077 app-20160516223139-0001
+ 
+ - Integrate spark - elasticsearch => spark => file => es
+ 
+ http://www.r2d3.us/visual-intro-to-machine-learning-part-1/
+ 
+ https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-14-04
+ 
+ http://data-archive.ethz.ch/delivery/DeliveryManagerServlet?dps_pid=IE594964
+ http://www.kdnuggets.com/2015/04/awesome-public-datasets-github.html/2
+ 
+ http://www.doc.ic.ac.uk/~dk3810/data/
+ http://data.ukedc.rl.ac.uk/simplebrowse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2015/UK-DALE-disaggregated/house_1
+ 
+## Proposal
+ - Apache Flume with UDP syslog to collect IoT data
+ - Apache Kafka sink => Spark Direct Stream
+ - Spark Streaming => Join with system data => Raw data to cassandra
+ - Spark Streaming window slider => pre-caculate => cassandra
+ - Spark job to calculate data from cassandra => save to files => signal LavaLamp to index files
+
+## Task
+ - Install cassandra + spark
+ - Setup flume in 1 node
+ - Spark streaming to handle raw data
+  + Support multi device type?
+  + Join master data (location, metadata)
+ - Spark job to handle report
+ 
+ - Spark monitoring
+ - Flume monitoring
+ - Cassandra monitoring
+ 
+## Setup
+- Flume => Kafka => Spark Streaming => Cassandra
+- Test performance
+
+- Tool to send message to kafka
+- Submit job to spark
+- Verify cassandra data
+ 
+ 1 2 3 6
+ 
+## Install
+ - Java8
+ - Cassandra
+  + http://docs.datastax.com/en/cassandra/3.x/cassandra/install/referenceInstallLocatePkg.html
+  + config setting /etc/cassandra.yaml
+    + cluster name
+	+ seed
+	+ rpc host
+ - Spark
+  + conf/slaves => all slave ip
+  + conf/spark-env.sh
+ - Zookeeper
+  + https://zookeeper.apache.org/doc/r3.4.6/zookeeperAdmin.html#sc_zkMulitServerSetup
+  + sudo apt-get install zookeeperd
+ - Apache Flume
+ + syslog udp source
+ + kafka channel
+ + kafka sink
+ 
+ - Elastic search
+ 
+## Implementation
+
+## Server
+[5/10/2016 2:02:16 PM] Nguyen Quang Huy: .111
+Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz
+32824916k
+[5/10/2016 2:03:13 PM] Nguyen Quang Huy: .113
+Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+ 32825260k
+[5/10/2016 2:03:47 PM] Nguyen Quang Huy: .84
+Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz
+16309988k
+
+## Deploy
+ - Java8 oracle: all
+ - Cassandra 3.5: all
+ - Zookeeper: 131
+ - Flume: 131
+ - Spark: done
+  + Master: 131
+  + Slave: all
+ - Kafka
+  + broker: 131, 111
+  nohup ./bin/kafka-server-start.sh ./config/server.properties > ./logs/nohup-kafka.log
+  
+ - syslog-ng => send log to flume
+  + https://www.balabit.com/sites/default/files/documents/syslog-ng-ose-latest-guides/en/syslog-ng-ose-guide-admin/html/configuring-sources-file.html
+  
+## Data
+  - Power
+   + House
+    + Channel -> name
+	
+## Show case preparation
+ - 300.000 tpps
+ - write java tool to send message to syslog-ng
+ - config syslog-ng -> flume -> kafka -> cassandra
+
+ - system data: house to address (region)
+ - data design
+  + pre-caculate data in cassandra
+  + document in es
+  + system data
+ - report design
+ - alarm
+## Data
+ - merge data of each house, order by time
+ or
+ - multi thread to send data of each channel
+ 
+## Show case: power data
+ - save raw data to cassandra => done
+ - pre-caculate and save to cassandra
+ - report last 15 minutes data and save to ES
+  + total by region
+  + total by house
+  => write java application, timer to calculate data and write result to elasticsearch
+  => config kibana to display chart
+  
+## House metadata
+ - Region: ID, Name, Decs
+ - SubRegion: ID, RegionID, Name, Decs
+ - House: ID, SubRegionID, RegionID, Name, Decs, Address
+ - Device: ID, HouseID SubRegionID, RegionID, Name, Type, Desc, Category
+
+## Data
+ - house -> channel
+ - metadata => channel metadata
+ - config: house -> channel
+## Data
+ - generate 1 year data for each house
+ - house template: 5 template
+ - config: house - template
+
+## Report
+ - http://www.fusioncharts.com/dashboards/energy-consumption-dashboard/
+ - https://engage.efergy.com/#home
+ 
+ - By type: light, water heating, refrigeration, tv
+ 
+## Demo:
+ - Data ingest: spark-streaming web-ui => 300k mps
+ - House dashboard
+ - Region dashboard
+
+## Demo data
+ - Feed data of 1 or 2 months => direct to ES
+ - Feed current data
+ 
+## Energy tool
+ - house template
+  + device
+  + device seed
+ - house: from template
+  => list of device
+  => send
+ - seed: support query by cursor (second) -> clone seed for each device -> handle current item
+ - device
+ -> timing send data to kafka
+ 
+## Master data
+ - region - id
+  + house - id
+    + device - id
+ 
+ - Region
+ - RegionWithChild
+ - House
+ - HouseWithChild
+ - Device
+ - DeviceRT
+ 
+## Flow
+ - Load device seed
+ - Load device template
+ - Load house config
+  + id-range template region-id
+ - Generate device
+  + deviceid
+ - Save device, house to json
+ - Timing: foreach device
+  + Get next data from seed
+  + Send
+  
+## Spark job
+ - Raw data => spark-streaming
+ - Current status => raw table
+  + House
+  + Region
+  + Device status
+ - Day report: hourly table
+ - Week report: daily table

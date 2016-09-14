@@ -33,8 +33,8 @@ public class DeviceTemplate {
         return device;
     }
 
-    public RTDevice createRT(String houseName){
-        RTDevice device = new RTDevice(houseName + "-" + channel, name, "", houseName);
+    public RTDevice createRT(String houseName, String zone){
+        RTDevice device = new RTDevice(houseName + "-" + channel, name, "", houseName, zone);
         device.setSeed(deviceSeed);
         return device;
     }

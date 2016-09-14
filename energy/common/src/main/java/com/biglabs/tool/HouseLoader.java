@@ -80,8 +80,7 @@ public class HouseLoader{
             RegionHouse rh = regions.get(regionId);
             HouseTemplate template = houseTemplates.get(templateName);
             for(String houseName: houses){
-                HouseDevice house = template.create(houseName);
-                house.setRegionId(regionId);
+                HouseDevice house = template.create(houseName, regionId);
                 rh.getHouses().add(house);
             }
             line = bufferedReader.readLine();

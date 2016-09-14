@@ -20,9 +20,9 @@ public class RTDevice extends Device{
         this.seed = seed;
     }
 
-    public RTDevice(String id, String name, String desc, String houseId){
+    public RTDevice(String id, String name, String desc, String houseId, String zoneId){
         super(id, name, desc, houseId);
-        header = houseId + " " + id;
+        header = zoneId + " " + houseId + " " + id;
     }
 
     public void run(DataPublisher publisher, long time){

@@ -52,18 +52,18 @@ public class HouseTemplate extends House{
         return deviceTemplates;
     }
 
-    public HouseDevice create(String name){
-        HouseDevice house = new HouseDevice(name, name, "", "");
+    public HouseDevice create(String name, String regionId){
+        HouseDevice house = new HouseDevice(name, name, "", regionId);
         for(DeviceTemplate dt: deviceTemplates){
             house.getDevices().add(dt.create(house.getName()));
         }
         return  house;
     }
 
-    public RTHouse createRT(String name){
-        RTHouse house = new RTHouse(name, name, "", "");
+    public RTHouse createRT(String name, String regionId){
+        RTHouse house = new RTHouse(name, name, "", regionId);
         for(DeviceTemplate dt: deviceTemplates){
-            house.getDevices().add(dt.createRT(house.getName()));
+            house.getDevices().add(dt.createRT(house.getName(), house.getRegionId()));
         }
         return  house;
     }

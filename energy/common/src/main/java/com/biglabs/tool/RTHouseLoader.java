@@ -66,8 +66,7 @@ public class RTHouseLoader {
 
             HouseTemplate template = houseTemplates.get(templateName);
             for(String houseName: houses){
-                RTHouse house = template.createRT(houseName);
-                house.setRegionId(regionId);
+                RTHouse house = template.createRT(houseName, regionId);
                 houseMap.put(house.getId(), house);
             }
             line = bufferedReader.readLine();

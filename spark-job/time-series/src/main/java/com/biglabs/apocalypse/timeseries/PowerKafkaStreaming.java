@@ -1,11 +1,13 @@
 package com.biglabs.apocalypse.timeseries;
 
+import com.biglabs.apocalypse.timeseries.model.*;
 import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import kafka.serializer.StringDecoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.sql.execution.columnar.BOOLEAN;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
@@ -31,24 +33,21 @@ public class PowerKafkaStreaming {
     int sparkCleanerTtl = 3600 * 2;
 
     public void run(String[] args) {
-        //System.out.println(scala.tools.nsc.Properties.versionString());
-        //printClassPath();
 
         ClassLoader classLoader = getClass().getClassLoader();
-
-//        try {
-//            System.out.println(org.apache.commons.io.IOUtils.toString(classLoader.getResourceAsStream("apocalypse.conf")));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         Config rootConf = ConfigFactory.parseResources(classLoader, "apocalypse.conf");
         System.out.print(rootConf.entrySet());
         Config kafka = rootConf.getConfig("kafka");
         String KafkaTopicRaw = kafka.getString("topic.power");
+        String brokers = kafka.getString("hosts");
         Config apocalypse = rootConf.getConfig("apocalypse");
         String CassandraKeyspace = apocalypse.getString("cassandra.power.keyspace");
         String CassandraTableRaw = apocalypse.getString("cassandra.power.table.raw");
+        String CassandraTableHouseHourly = apocalypse.getString("cassandra.power.table.house_hourly");
+        String CassandraTableHouseDaily = apocalypse.getString("cassandra.power.table.house_daily");
+        String CassandraTableRegionHourly = apocalypse.getString("cassandra.power.table.region_hourly");
+        String CassandraTableRegionDaily = apocalypse.getString("cassandra.power.table.region_daily");
         String HourlyCassandraTable = apocalypse.getString("cassandra.power.table.hourly_power_data");
 
         Config spark = rootConf.getConfig("spark");
@@ -71,29 +70,14 @@ public class PowerKafkaStreaming {
                 .set("spark.cassandra.connection.keep_alive_ms", "60000");
 
         // es
+//        conf.set("es.index.auto.create", "true");
+//        conf.set("es.nodes", "192.168.1.84");
+//        conf.set("es.port", "9200");
+//        conf.set("es.nodes.wan.only", "true");
 
-        conf.set("es.index.auto.create", "true");
-        conf.set("es.nodes", "192.168.1.84");
-        conf.set("es.port", "9200");
-        conf.set("es.nodes.wan.only", "true");
-
-        // JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.milliseconds(SparkStreamingBatchInterval));
         JavaStreamingContext ssc = new JavaStreamingContext(conf, new Duration(15000));
 
-        String brokers;
-        // try  {
-        brokers = kafka.getString("hosts");
-        // } catch (Exception ex) {
-        // /** Starts the Kafka broker and Zookeeper. */
-        // EmbeddedKafka embeddedKafka = new EmbeddedKafka();
-
-        // /** Creates the raw data topic. */
-        // embeddedKafka.createTopic(KafkaTopicRaw, 1, 1);
-        // brokers = embeddedKafka.kafkaConfig().hostName() + ":" + embeddedKafka.kafkaConfig().port();
-        // }
-
         java.util.Map<String, String> kafkaParams = new HashMap<String, String>();
-        // kafkaParams.put("metadata.broker.list", "localhost:" + embeddedKafka.kafkaConfig().port());
         kafkaParams.put("metadata.broker.list", brokers);
         Set<String> topicsSet = new HashSet<>(Arrays.asList(KafkaTopicRaw));
         //printClassPath();
@@ -113,49 +97,46 @@ public class PowerKafkaStreaming {
             e.printStackTrace();
         }
 
-        JavaDStream<HourlyPowerData> powerStream = rootStream
+        // Raw power data
+        JavaDStream<PowerRaw> rawpowerStream = rootStream
                 .map((Function<Tuple2<String, String>, String[]>) tuple2 -> tuple2._2().split(" "))
-                .map((Function<String[], HourlyPowerData>) array -> {
-                    return new HourlyPowerData(array);
+                .map((Function<String[], PowerRaw>) array -> {
+                    return new PowerRaw(array);
                 });
 
-        CassandraStreamingJavaUtil.<HourlyPowerData>javaFunctions(powerStream)
-                .writerBuilder(CassandraKeyspace, HourlyCassandraTable, mapToRow(HourlyPowerData.class))
+        CassandraStreamingJavaUtil.javaFunctions(rawpowerStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(PowerRaw.class))
                 .saveToCassandra();
 
-//        powerStream.map((Function<HourlyPowerData, Long>) powerData -> { return powerData.getValue();})
-//        .reduce((x, y) -> {
-//            return x + y;
-//        }).map(x -> {
-//            return new TimeValue(x / 4500000);
-//        })
-//        .foreachRDD((JavaRDD<TimeValue> x) -> {
-//            if (x.count() <= 0) {
-//                return;
-//            }
-//            saveToEs(x, "spark/power_sum_total");
-//        });
+        // Filter to use channel_1 (aggreated value)
+        JavaDStream<PowerRaw> aggPowerStream = rawpowerStream.filter(powerraw -> {
+            return powerraw.getDevice().endsWith("_1");
+        } );
 
-        powerStream.map(powerData -> {
-            String houseId = powerData.getHome().substring(5);
-            int house = (Integer.parseInt(houseId) + 999) / 1000 - 1;
-            long val = powerData.getValue() / 4500000;
-            switch (house)
-            {
-                case 0:
-                    return new Time3Value(val, 0, 0);
-                case 1:
-                    return new Time3Value(0, val, 0);
-                default:
-                    return new Time3Value(0,0,val);
-            }
-        }).reduce((t1, t2) -> {return new Time3Value(t1.getValue1() + t2.getValue1(), t1.getValue2() + t2.getValue2(), t1.getValue3() + t2.getValue3());})
-                .foreachRDD(x -> {
-                    if (x.count() <= 0) {
-                        return;
-                    }
-                    saveToEs(x, "spark/power_sum_total");
-                });
+        // House hourly
+        JavaDStream<HouseHourly> houseHourlyStream = aggPowerStream.map(powerraw -> new HouseHourly(powerraw));
+        CassandraStreamingJavaUtil.javaFunctions(houseHourlyStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableHouseHourly, mapToRow(HouseHourly.class))
+                .saveToCassandra();
+
+        // House daily
+        JavaDStream<HouseDaily> houseDailyStream = houseHourlyStream.map(houseHourly -> new HouseDaily(houseHourly));
+        CassandraStreamingJavaUtil.javaFunctions(houseDailyStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableHouseDaily, mapToRow(HouseDaily.class))
+                .saveToCassandra();
+
+        // Region hourly
+        JavaDStream<RegionHourly> regionHourlyStream = aggPowerStream.map(powerraw -> new RegionHourly(powerraw));
+        CassandraStreamingJavaUtil.javaFunctions(regionHourlyStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableRegionHourly, mapToRow(RegionHourly.class))
+                .saveToCassandra();
+
+        // Region daily
+        JavaDStream<RegionDaily> regionDailyStream = regionHourlyStream.map(regionHourly -> new RegionDaily(regionHourly));
+        CassandraStreamingJavaUtil.javaFunctions(regionDailyStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableRegionDaily, mapToRow(RegionDaily.class))
+                .saveToCassandra();
+
         ssc.start();              // Start the computation
         ssc.awaitTermination();   // Wait for the computation to terminate
     }

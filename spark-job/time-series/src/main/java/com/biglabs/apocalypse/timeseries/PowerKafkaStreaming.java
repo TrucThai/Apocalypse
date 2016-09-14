@@ -67,6 +67,7 @@ public class PowerKafkaStreaming {
                 .set("spark.cassandra.output.concurrent.writes", "100")
                 .set("spark.cassandra.output.batch.size.bytes", "2000000")
                 .set("spark.executor.cores", "5")
+                .set("spark.cassandra.output.consistency.level", "ANY")
                 .set("spark.cassandra.connection.keep_alive_ms", "60000");
 
         // es

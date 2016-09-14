@@ -10,6 +10,7 @@ public class RTDevice extends Device{
     private DeviceSeed seed;
     private int dataCursor = 0;
     private long timeDiff = -1;
+    private long timeUpperRange = 0;
     private String header;
 
     public DeviceSeed getSeed() {
@@ -29,6 +30,8 @@ public class RTDevice extends Device{
         if(dataCursor == 0){
             DeviceSeed.Seed seedData = seed.getData().get(dataCursor);
             timeDiff = time - seedData.getTime();
+            DeviceSeed.Seed nextSeed = seed.getData().get(dataCursor+1);
+            timeUpperRange = timeDiff + nextSeed.getTime();
         }
 
         updateSeedCursor(time);
@@ -39,17 +42,19 @@ public class RTDevice extends Device{
     }
 
     protected void updateSeedCursor(long time){
-        DeviceSeed.Seed seedData = seed.getData().get(dataCursor);
-        while(seedData.getTime() + timeDiff < time){
+        while(timeUpperRange < time){
             dataCursor ++;
-            if(dataCursor >= seed.getData().size()){
+            if(dataCursor >= seed.getData().size() - 2){
                 dataCursor = 0;
                 DeviceSeed.Seed startSeed = seed.getData().get(dataCursor);
                 timeDiff = time - startSeed.getTime();
+                DeviceSeed.Seed nextSeed = seed.getData().get(dataCursor+1);
+                timeUpperRange = timeDiff + nextSeed.getTime();
                 break;
             }
 
-            seedData = seed.getData().get(dataCursor);
+            DeviceSeed.Seed seedData = seed.getData().get(dataCursor + 1);
+            timeUpperRange = timeDiff + seedData.getTime();
         }
     }
 }

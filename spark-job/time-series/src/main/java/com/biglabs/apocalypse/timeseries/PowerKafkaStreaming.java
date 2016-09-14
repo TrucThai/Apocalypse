@@ -110,7 +110,7 @@ public class PowerKafkaStreaming {
 
         // Filter to use channel_1 (aggreated value)
         JavaDStream<PowerRaw> aggPowerStream = rawpowerStream.filter(powerraw -> {
-            return powerraw.getDevice().endsWith("_1");
+            return powerraw.getDevice().endsWith("-1");
         } );
 
         // House hourly

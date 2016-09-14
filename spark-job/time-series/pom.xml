@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.datastax.spark</groupId>
             <artifactId>spark-cassandra-connector_2.11</artifactId>
-            <version>1.6.0-M1</version>
+            <version>1.6.2</version>
         </dependency>
         <!-- http://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector-java_2.10 -->
         <dependency>

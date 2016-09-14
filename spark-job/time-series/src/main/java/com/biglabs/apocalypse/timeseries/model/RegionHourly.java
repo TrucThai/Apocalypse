@@ -1,6 +1,9 @@
 package com.biglabs.apocalypse.timeseries.model;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import java.io.Serializable;
+import java.util.Calendar;
 
 /**
  * Created by thainguy on 9/14/2016.
@@ -16,12 +19,23 @@ public class RegionHourly implements Serializable {
 
     public RegionHourly(){}
 
+    public RegionHourly(RegionHourly regionHourly){
+        this.region = regionHourly.getRegion();
+        this.year = regionHourly.getYear();
+        this.month = regionHourly.getMonth();
+        this.day = regionHourly.getDay();
+        this.value = regionHourly.getValue();
+        this.hour = regionHourly.getHour();
+        this.aggcouner = regionHourly.getAggcouner();
+    }
+
     public RegionHourly(PowerRaw powerRaw){
         this.region = powerRaw.getRegion();
-        this.year = powerRaw.getTime().getYear();
-        this.month = powerRaw.getTime().getMonth();
-        this.day = powerRaw.getTime().getDay();
-        this.hour = powerRaw.getTime().getHours();
+        Calendar calendar = DateUtils.toCalendar(powerRaw.getTime());
+        this.year = calendar.get(Calendar.YEAR);
+        this.month = calendar.get(Calendar.MONTH);
+        this.day = calendar.get(Calendar.DAY_OF_MONTH);
+        this.hour = calendar.get(Calendar.HOUR_OF_DAY);
         this.value = powerRaw.getValue();
         this.aggcouner = 1;
     }

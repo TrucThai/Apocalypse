@@ -1,6 +1,9 @@
 package com.biglabs.apocalypse.timeseries.model;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import java.io.Serializable;
+import java.util.Calendar;
 
 /**
  * Created by thainguy on 9/14/2016.
@@ -16,12 +19,23 @@ public class HouseHourly implements Serializable {
 
     public HouseHourly(){}
 
+    public HouseHourly(HouseHourly houseHourly){
+        this.house = houseHourly.getHouse();
+        this.year = houseHourly.getYear();
+        this.month = houseHourly.getMonth();
+        this.day = houseHourly.getDay();
+        this.hour = houseHourly.getHour();
+        this.value = houseHourly.getValue();
+        this.aggcouner = houseHourly.getAggcouner();
+    }
+
     public HouseHourly(PowerRaw powerRaw){
         this.house = powerRaw.getHouse();
-        this.year = powerRaw.getTime().getYear();
-        this.month = powerRaw.getTime().getMonth();
-        this.day = powerRaw.getTime().getDay();
-        this.hour = powerRaw.getTime().getHours();
+        Calendar calendar = DateUtils.toCalendar(powerRaw.getTime());
+        this.year = calendar.get(Calendar.YEAR);
+        this.month = calendar.get(Calendar.MONTH);
+        this.day = calendar.get(Calendar.DAY_OF_MONTH);
+        this.hour = calendar.get(Calendar.HOUR_OF_DAY);
         this.value = powerRaw.getValue();
         this.aggcouner = 1;
     }

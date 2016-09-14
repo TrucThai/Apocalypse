@@ -1,8 +1,8 @@
 
-DROP KEYSPACE IF EXISTS power_data;
-CREATE KEYSPACE power_data WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+DROP KEYSPACE IF EXISTS energy_data;
+CREATE KEYSPACE energy_data WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
-use power_data;
+use energy_data;
 
 CREATE TABLE raw_power_data (
    region text,
@@ -10,9 +10,8 @@ CREATE TABLE raw_power_data (
    device text,
    time timestamp,
    value int,
-   PRIMARY KEY ((house), device, time)
-)
- WITH CLUSTERING ORDER BY (time DESC);
+   PRIMARY KEY ((house), time, device)
+) WITH CLUSTERING ORDER BY (time DESC);
 
 CREATE TABLE region_hourly (
    region text,

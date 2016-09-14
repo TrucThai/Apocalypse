@@ -5,8 +5,10 @@ import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import kafka.serializer.StringDecoder;
+import org.apache.cassandra.io.util.MmappedRegions;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.sql.execution.columnar.BOOLEAN;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -67,7 +69,7 @@ public class PowerKafkaStreaming {
                 .set("spark.cassandra.output.concurrent.writes", "100")
                 .set("spark.cassandra.output.batch.size.bytes", "2000000")
                 .set("spark.executor.cores", "5")
-                .set("spark.cassandra.output.consistency.level", "ANY")
+                .set("spark.cassandra.output.consistency.level", "ONE")
                 .set("spark.cassandra.connection.keep_alive_ms", "60000");
 
         // es
@@ -115,25 +117,35 @@ public class PowerKafkaStreaming {
         } );
 
         // House hourly
-        JavaDStream<HouseHourly> houseHourlyStream = aggPowerStream.map(powerraw -> new HouseHourly(powerraw));
+        JavaDStream<HouseHourly> houseHourlyStream = aggPowerStream.map(powerraw -> new HouseHourly(powerraw))
+                .mapToPair(houseHourly -> new Tuple2<String, HouseHourly>(houseHourly.getHouse() + houseHourly.getHour(), houseHourly))
+                .reduceByKey((h1, h2) -> ModelHelper.combine(h1,h2))
+                .map(tuple -> tuple._2());
         CassandraStreamingJavaUtil.javaFunctions(houseHourlyStream)
                 .writerBuilder(CassandraKeyspace, CassandraTableHouseHourly, mapToRow(HouseHourly.class))
                 .saveToCassandra();
 
         // House daily
-        JavaDStream<HouseDaily> houseDailyStream = houseHourlyStream.map(houseHourly -> new HouseDaily(houseHourly));
+        JavaDStream<HouseDaily> houseDailyStream = houseHourlyStream.mapToPair(houseHourly -> new Tuple2<String, HouseDaily>(houseHourly.getHouse(), new HouseDaily(houseHourly)))
+                .reduceByKey((h1, h2) -> ModelHelper.combine(h1, h2))
+                .map(tuple -> tuple._2());
         CassandraStreamingJavaUtil.javaFunctions(houseDailyStream)
                 .writerBuilder(CassandraKeyspace, CassandraTableHouseDaily, mapToRow(HouseDaily.class))
                 .saveToCassandra();
 
         // Region hourly
-        JavaDStream<RegionHourly> regionHourlyStream = aggPowerStream.map(powerraw -> new RegionHourly(powerraw));
+        JavaDStream<RegionHourly> regionHourlyStream = aggPowerStream.map(powerraw -> new RegionHourly(powerraw))
+                .mapToPair(r -> new Tuple2<String, RegionHourly>(r.getRegion() + r.getHour(), r))
+                .reduceByKey((r1,r2) -> ModelHelper.combine(r1, r2))
+                .map(tuple -> tuple._2());
         CassandraStreamingJavaUtil.javaFunctions(regionHourlyStream)
                 .writerBuilder(CassandraKeyspace, CassandraTableRegionHourly, mapToRow(RegionHourly.class))
                 .saveToCassandra();
 
         // Region daily
-        JavaDStream<RegionDaily> regionDailyStream = regionHourlyStream.map(regionHourly -> new RegionDaily(regionHourly));
+        JavaDStream<RegionDaily> regionDailyStream = regionHourlyStream.mapToPair(regionDaily -> new Tuple2<String, RegionDaily>(regionDaily.getRegion(), new RegionDaily(regionDaily)))
+                .reduceByKey((regionDaily, regionDaily2) -> ModelHelper.combine(regionDaily, regionDaily2))
+                .map( tuple -> tuple._2());
         CassandraStreamingJavaUtil.javaFunctions(regionDailyStream)
                 .writerBuilder(CassandraKeyspace, CassandraTableRegionDaily, mapToRow(RegionDaily.class))
                 .saveToCassandra();

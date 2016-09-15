@@ -28,6 +28,7 @@ public class RTDevice extends Device{
 
     public void run(DataPublisher publisher, long time){
         if(dataCursor == -1){
+            dataCursor = 0;
             DeviceSeed.Seed seedData = seed.getData().get(dataCursor);
             timeDiff = time - seedData.getTime();
             DeviceSeed.Seed nextSeed = seed.getData().get(dataCursor+1);

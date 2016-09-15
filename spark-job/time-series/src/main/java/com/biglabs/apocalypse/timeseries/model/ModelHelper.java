@@ -31,4 +31,11 @@ public class ModelHelper {
         houseHourly.setAggcouner(r1.getAggcouner() + r2.getAggcouner());
         return houseHourly;
     }
+
+    public static DeviceDaily combine(DeviceDaily r1, DeviceDaily r2){
+        DeviceDaily deviceDaily = new DeviceDaily(r1);
+        deviceDaily.setValue(r1.getValue() + r2.getValue());
+        deviceDaily.setAggcouner(r1.getAggcouner() + r2.getAggcouner());
+        return deviceDaily;
+    }
 }

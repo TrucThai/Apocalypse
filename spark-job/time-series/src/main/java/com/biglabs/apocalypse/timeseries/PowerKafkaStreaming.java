@@ -46,6 +46,7 @@ public class PowerKafkaStreaming {
         Config apocalypse = rootConf.getConfig("apocalypse");
         String CassandraKeyspace = apocalypse.getString("cassandra.power.keyspace");
         String CassandraTableRaw = apocalypse.getString("cassandra.power.table.raw");
+        String CassandraTableDeviceDaily = apocalypse.getString("cassandra.power.table.device_daily");
         String CassandraTableHouseHourly = apocalypse.getString("cassandra.power.table.house_hourly");
         String CassandraTableHouseDaily = apocalypse.getString("cassandra.power.table.house_daily");
         String CassandraTableRegionHourly = apocalypse.getString("cassandra.power.table.region_hourly");
@@ -109,6 +110,15 @@ public class PowerKafkaStreaming {
 
         CassandraStreamingJavaUtil.javaFunctions(rawpowerStream)
                 .writerBuilder(CassandraKeyspace, CassandraTableRaw, mapToRow(PowerRaw.class))
+                .saveToCassandra();
+
+        // Device daily
+        JavaDStream<DeviceDaily> deviceDailyStream = rawpowerStream.map(powerraw -> new DeviceDaily(powerraw))
+                .mapToPair(deviceDaily -> new Tuple2<String, DeviceDaily>(deviceDaily.getDevice() + deviceDaily.getDay(), deviceDaily))
+                .reduceByKey((h1, h2) -> ModelHelper.combine(h1,h2))
+                .map(tuple -> tuple._2());
+        CassandraStreamingJavaUtil.javaFunctions(deviceDailyStream)
+                .writerBuilder(CassandraKeyspace, CassandraTableDeviceDaily, mapToRow(DeviceDaily.class))
                 .saveToCassandra();
 
         // Filter to use channel_1 (aggreated value)

@@ -61,7 +61,7 @@ public class App
             if(counter % 60 == 0){
                 System.out.println((new Date()) + " total sent messages " + counter * numDevices);
             }
-            Thread.sleep(900);
+            Thread.sleep(2500);
         }
     }
 

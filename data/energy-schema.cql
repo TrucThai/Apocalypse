@@ -54,3 +54,14 @@ CREATE TABLE house_daily (
    value counter,
    PRIMARY KEY ((house), year, month, day)
 )  WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
+
+CREATE TABLE device_daily (
+   house text,
+   device text,
+   year int,
+   month int,
+   day int,
+   aggcouner counter,
+   value counter,
+   PRIMARY KEY ((house), year, month, day, device)
+)  WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);

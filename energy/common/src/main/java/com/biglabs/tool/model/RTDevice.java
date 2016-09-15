@@ -8,7 +8,7 @@ import com.biglabs.tool.model.poco.Device;
  */
 public class RTDevice extends Device{
     private DeviceSeed seed;
-    private int dataCursor = 0;
+    private int dataCursor = -1;
     private long timeDiff = -1;
     private long timeUpperRange = 0;
     private String header;
@@ -27,7 +27,7 @@ public class RTDevice extends Device{
     }
 
     public void run(DataPublisher publisher, long time){
-        if(dataCursor == 0){
+        if(dataCursor == -1){
             DeviceSeed.Seed seedData = seed.getData().get(dataCursor);
             timeDiff = time - seedData.getTime();
             DeviceSeed.Seed nextSeed = seed.getData().get(dataCursor+1);

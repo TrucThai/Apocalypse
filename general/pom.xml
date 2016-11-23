@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.biglabs.tool</groupId>
+    <groupId>com.biglabs</groupId>
     <artifactId>general</artifactId>
     <packaging>pom</packaging>
 

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.biglabs.iot</groupId>
+    <groupId>com.biglabs</groupId>
     <artifactId>spark-job</artifactId>
     <packaging>pom</packaging>
 
